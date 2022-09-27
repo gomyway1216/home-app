@@ -1,0 +1,28 @@
+.signUpPageRoot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .signUpWrapper {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    max-width: 80%;
+    margin-top: 10%;
+    margin-bottom: 2%;
+
+    .titleWrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 5%;
+
+      .title {
+        font-size: xx-large;
+      }
+    }
+
+    .inputField {
+      margin-bottom: 10%;
+    }
+  }
+}
