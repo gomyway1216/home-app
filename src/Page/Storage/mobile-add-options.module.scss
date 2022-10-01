@@ -1,0 +1,26 @@
+.addIconContainer {
+  position: fixed;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  
+
+  .actionButtons {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    button {
+      margin: 4px;
+    }
+
+    margin-bottom: 8px;
+  }
+
+  .addIcon {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

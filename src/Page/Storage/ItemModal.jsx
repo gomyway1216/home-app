@@ -84,7 +84,7 @@ const ItemModal = (props) => {
           props.callback();
         }
       } else {
-        itemId = await api.createItem(userId, item);
+        const itemId = await api.createItem(userId, item);
         if (itemId) {
           props.onClose();
           setDialogItem(defaultItem);
@@ -162,7 +162,7 @@ const ItemModal = (props) => {
     } else if (item.includes('Date')) {
       return <LocalizationProvider dateAdapter={AdapterMoment}>
         <MobileDatePicker
-          label="Date mobile"
+          label={item === 'purchaseDate' ? 'Purchase Date' : 'Expiry Date'}
           inputFormat="MM/DD/YYYY"
           value={dialogItem[item]}
           onChange={onDateInputChange(item)}

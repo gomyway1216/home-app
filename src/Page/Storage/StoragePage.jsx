@@ -5,6 +5,8 @@ import StorageTable from './StorageTable';
 import AddValueModal from './AddValueModal';
 import ItemModal from './ItemModal';
 import { useAuth } from '../../Provider/AuthProvider';
+import MobileAddOptions from './MobileAddOptions';
+import useMobileQuery from '../../Hook/useMobileQuery';
 import styles from './storage-page.module.scss';
 
 
@@ -18,6 +20,7 @@ const StoragePage = () => {
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const { currentUser } = useAuth();
   const userId = currentUser.uid;
+  const { matches } = useMobileQuery();
 
   const getLocationList = async () => {
     const locations = await storageApi.getLocationList(userId);
@@ -89,17 +92,22 @@ const StoragePage = () => {
   }, []);
 
   return (
-    <div>
+    <div className={styles.root}>
       <div>
-        <Button onClick={() => handleAddValue('item')}>Add Item</Button>
-        <Button onClick={() => handleAddValue('location')}>Add Location</Button>
-        <Button onClick={() => handleAddValue('owner')}>Add Owner</Button>
-        <Button onClick={() => handleAddValue('type')}>Add Type</Button>
+        {matches.width && <div className={styles.actionButtons}>
+          <Button onClick={() => handleAddValue('item')}>Add Item</Button>
+          <Button onClick={() => handleAddValue('location')}>Add Location</Button>
+          <Button onClick={() => handleAddValue('owner')}>Add Owner</Button>
+          <Button onClick={() => handleAddValue('type')}>Add Type</Button>
+        </div>
+        }
+        <StorageTable itemList={itemList} getItemList={getItemList} locationList={locationList} ownerList={ownerList} typeList={typeList} />
+        <AddValueModal open={valueDialogOpen} onClose={handleValueDialogClose} callback={fetchValueList} valueList={getValueList()} modalMode={modalMode} />
+        <ItemModal open={itemDialogOpen} onClose={handleItemDialogClose} callback={fetchValueList} 
+          locationList={locationList} ownerList={ownerList} typeList={typeList} />
       </div>
-      <StorageTable itemList={itemList} getItemList={getItemList} locationList={locationList} ownerList={ownerList} typeList={typeList} />
-      <AddValueModal open={valueDialogOpen} onClose={handleValueDialogClose} callback={fetchValueList} valueList={getValueList()} modalMode={modalMode} />
-      <ItemModal open={itemDialogOpen} onClose={handleItemDialogClose} callback={fetchValueList} 
-        locationList={locationList} ownerList={ownerList} typeList={typeList} />
+      {!matches.width && <MobileAddOptions handleAddValue={handleAddValue}/>
+      }
     </div>
   );
 };

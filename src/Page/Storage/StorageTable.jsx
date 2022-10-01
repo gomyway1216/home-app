@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Button, IconButton, Tooltip } from '@mui/material';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid, GridToolbarContainer, 
+  GridToolbarColumnsButton, GridToolbarFilterButton, 
+  GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
-import NoFoodIcon from '@mui/icons-material/NoFood';
 import ReplayIcon from '@mui/icons-material/Replay';
 import ItemModal from './ItemModal';
 import * as storageApi from '../../Firebase/storage';
 import { useAuth } from '../../Provider/AuthProvider';
+import useMobileQuery from '../../Hook/useMobileQuery';
+import IconButtonWithTooltip from '../../Component/IconButtonWithTooltip';
 import styles from './storage-table.module.scss';
+
 
 const StorageTable = (props) => {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -16,11 +20,29 @@ const StorageTable = (props) => {
   const { locationList, ownerList, typeList, itemList, getItemList } = props;
   const { currentUser } = useAuth();
   const userId = currentUser.uid;
+  const { matches } = useMobileQuery();
 
   const columns = [
-    { field: 'location', headerName: 'Location', width: 100 },
-    { field: 'owner', headerName: 'Owner', width: 100 },
-    { field: 'type', headerName: 'Type', width: 100 },
+    {
+      field: 'consume',
+      headerName: 'Consume',
+      sortable: false,
+      filterable: false,
+      width: 80,
+      renderCell: (params) => {
+        const onClick = (e) => {
+          e.stopPropagation(); // don't select this row after clicking
+          handleConsumeItem(params.row);
+        };
+        return (
+          <IconButtonWithTooltip aria-label="consume" tooltipText="click here to consume" color="primary" disabled={!params.row.isAvailable} onClick={onClick} />
+        );
+      }
+    },
+    { field: 'name', headerName: 'Name', width: 150 },
+    { field: 'location', headerName: 'Location', width: 80, type: 'singleSelect', valueOptions: locationList },
+    { field: 'owner', headerName: 'Owner', width: 80, type: 'singleSelect', valueOptions: ownerList },
+    { field: 'type', headerName: 'Type', width: 100, type: 'singleSelect', valueOptions: typeList },
     { field: 'purchaseDate', 
       headerName: 'Purchase Date', 
       width: 150,
@@ -33,30 +55,12 @@ const StorageTable = (props) => {
       type: 'date',
       valueGetter: ({ value }) => value && new Date(value).toLocaleDateString()
     },
-    { field: 'name', headerName: 'Name', width: 150 },
     { field: 'isAvailable', headerName: 'Available', width: 100, type: 'boolean' },
-    {
-      field: 'consume',
-      headerName: 'Consume',
-      sortable: false,
-      renderCell: (params) => {
-        const onClick = (e) => {
-          e.stopPropagation(); // don't select this row after clicking
-          handleConsumeItem(params.row);
-        };
-        return (
-          <Tooltip title="consume">
-            <IconButton aria-label="consume" onClick={onClick} color="primary">
-              <NoFoodIcon />
-            </IconButton>
-          </Tooltip>
-        );
-      }
-    },
     {
       field: 'action',
       headerName: 'Action',
       sortable: false,
+      filterable: false,
       renderCell: (params) => {
         const onClick = (e) => {
           e.stopPropagation(); // don't select this row after clicking
@@ -87,15 +91,36 @@ const StorageTable = (props) => {
     getItemList();
   };
 
+
   return (
     <div className={styles.storageTableRoot}>
-      <div className={styles.commands}>
+      {matches.width && <div className={styles.commands}>
         <Button onClick={getItemList} variant="outlined" startIcon={<ReplayIcon />}>Update</Button>
       </div>
+      }
       <DataGrid
         rows={itemList}
         columns={columns}
-        components={{ Toolbar: GridToolbar }}
+        components={{ Toolbar: () => {
+          return (
+            <GridToolbarContainer>
+              <GridToolbarColumnsButton />
+              <GridToolbarFilterButton />
+              <GridToolbarDensitySelector />
+              <GridToolbarExport />
+            </GridToolbarContainer>);
+        }}}
+        autoHeight
+        componentsProps={{
+          panel: {
+            sx: {
+              '& .MuiDataGrid-filterForm': {
+                display: 'flex',
+                flexDirection: 'column'
+              },
+            },
+          },
+        }}
       />
       <ItemModal open={dialogOpen} onClose={handleDialogClose} callback={getItemList} 
         locationList={locationList} ownerList={ownerList} typeList={typeList} item={dialogItem}/>
@@ -108,7 +133,8 @@ StorageTable.propTypes = {
   ownerList: PropTypes.array.isRequired,
   typeList: PropTypes.array.isRequired,
   itemList: PropTypes.array.isRequired,
-  getItemList: PropTypes.func.isRequired
+  getItemList: PropTypes.func.isRequired,
+  innerRef: PropTypes.any
 };
 
 export default StorageTable;
