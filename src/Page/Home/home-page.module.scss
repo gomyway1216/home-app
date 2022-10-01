@@ -1,0 +1,10 @@
+.root {
+  width: 80%;
+  margin: 0 auto;
+  margin-top: 24px;
+
+  .cards {
+    display: flex;
+    justify-content: space-evenly;
+  }
+}
