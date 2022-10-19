@@ -110,7 +110,7 @@ const SignUpPage = () => {
           value={itemInput.userId} onChange={onItemInputChange} helperText={errorText.userId}/>
         <TextField className={styles.inputField} id="password" name="password" label="Password" 
           type="password" value={itemInput.password} onChange={onItemInputChange} helperText={errorText.password} />
-        <TextField className={styles.inputField} id="passwordConfirm" name="passwordConfirm" label="Password" 
+        <TextField className={styles.inputField} id="passwordConfirm" name="passwordConfirm" label="Confirm" 
           type="password" value={itemInput.passwordConfirm} onChange={onItemInputChange} helperText={errorText.passwordConfirm} />
         <Button variant="contained" color="primary" onClick={onSignUp}>Sign Up</Button>
       </div>
