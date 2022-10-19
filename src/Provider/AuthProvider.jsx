@@ -1,6 +1,7 @@
 import React, { createContext,useEffect, useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import { auth, signUpWithEmail, signInWithEmail, signOutUser } from '../Firebase/firebaseConnect';
+import * as userApi from '../Firebase/user';
 
 const AuthContext = createContext();
 
@@ -11,6 +12,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState();
+  const [userId, setUserId] = useState();
   const [loading, setLoading] = useState(true);
 
   const signUp = (email, password) => {
@@ -38,8 +40,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
+    const unsubscribe = auth.onAuthStateChanged(async user => {
       setCurrentUser(user);
+      if(user) {
+        const u = await userApi.getUserByEmail(user.email);
+        setUserId(u.userId);
+      } else {
+        setUserId(null);
+      }
       setLoading(false);
     });
 
@@ -48,12 +56,14 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     currentUser,
+    userId,
     signIn,
     signUp,
     signOut,
     resetPassword,
     updateEmail,
-    updatePassword
+    updatePassword,
+    setUserId
   };
 
   return (

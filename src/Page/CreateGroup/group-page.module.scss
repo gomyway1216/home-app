@@ -1,0 +1,14 @@
+.root {
+  margin-bottom: 20px;
+
+  .groupList {
+    max-height: 500px;
+    overflow: scroll;
+  }
+
+  .addUser {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-around;
+  }
+}

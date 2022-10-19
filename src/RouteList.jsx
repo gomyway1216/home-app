@@ -6,6 +6,8 @@ import StoragePage from './Page/Storage/StoragePage';
 import SignInPage from './Page/SignIn/SignInPage';
 import SignUpPage from './Page/SignUp/SignUpPage';
 import ForgotPasswordPage from './Page/ForgotPassword/ForgotPasswordPage';
+import UserPage from './Page/UserPage/UserPage';
+import GroupPage from './Page/CreateGroup/GroupPage';
 
 
 const RouteList = () => {
@@ -19,6 +21,10 @@ const RouteList = () => {
         <Route exact path='/storage' element={<PrivateRoute/>}>
           <Route exact path='/storage' element={<StoragePage/>}/>
         </Route>
+        <Route exact path='/user' element={<UserPage/>}>
+          <Route exact path='/user' element={<UserPage/>}/>
+        </Route>
+        <Route exact path='/group' element={<GroupPage />} />
       </Routes>
     </div>
   );

@@ -18,7 +18,6 @@ const MobileAddOptions = (props) => {
       {isExpanded && <div className={styles.actionButtons}>
         <Button variant="outlined" onClick={() => handleAddValue('item')}>Add Item</Button>
         <Button variant="outlined" onClick={() => handleAddValue('location')}>Add Location</Button>
-        <Button variant="outlined" onClick={() => handleAddValue('owner')}>Add Owner</Button>
         <Button variant="outlined" onClick={() => handleAddValue('type')}>Add Type</Button>
       </div>
       }

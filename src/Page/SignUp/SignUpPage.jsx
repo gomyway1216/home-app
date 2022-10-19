@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { TextField, Button, Alert, AlertTitle } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Provider/AuthProvider';
+import * as userApi from '../../Firebase/user';
 import styles from './sign-up-page.module.scss';
 
 
 const defaultInput = {
   email: '',
+  userId: '',
   password: '',
   passwordConfirm: ''
 };
@@ -17,10 +19,10 @@ const SignUpPage = () => {
   const [errorText, setErrorText] = useState(defaultInput);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUp, setUserId } = useAuth();
   
   const onSignUp = async () => {
-    const { email, password, passwordConfirm } = itemInput;
+    const { email, userId, password, passwordConfirm } = itemInput;
     let validated = true;
     const newErrorText = { ...errorText };
 
@@ -30,6 +32,15 @@ const SignUpPage = () => {
       newErrorText.email = 'email is invalid!';
     } else {
       newErrorText.email = '';
+    }
+
+    // check if the userId already exists in db
+    const userExist = await userApi.checkUserExist(userId);
+    if(userExist) {
+      validated = false;
+      newErrorText.userId = 'User ID already exists.';
+    } else {
+      newErrorText.userId = '';
     }
 
     if(!password || password.length < 8) {
@@ -57,6 +68,13 @@ const SignUpPage = () => {
       setError('');
       setLoading(true);
       await signUp(email, password);
+      const userObj = {
+        userId: userId,
+        email: email,
+        points: 0
+      };
+      await userApi.signUpUser(userObj);
+      setUserId(userId);
       navigate('/');
     } catch (e) {
       setError(e.message);
@@ -72,6 +90,8 @@ const SignUpPage = () => {
     });
   };
 
+  // create userId form. Next to the userId, create a button to check if the User Id is valid
+  // meaning to check if the user exists or not.
   return (
     <div className={styles.signUpPageRoot}>
       <div className={styles.signUpWrapper}>
@@ -86,6 +106,8 @@ const SignUpPage = () => {
         }
         <TextField className={styles.inputField} id="email" name="email" label="email" 
           value={itemInput.email} onChange={onItemInputChange} helperText={errorText.email}/>
+        <TextField className={styles.inputField} id="userId" name="userId" label="User ID" 
+          value={itemInput.userId} onChange={onItemInputChange} helperText={errorText.userId}/>
         <TextField className={styles.inputField} id="password" name="password" label="Password" 
           type="password" value={itemInput.password} onChange={onItemInputChange} helperText={errorText.password} />
         <TextField className={styles.inputField} id="passwordConfirm" name="passwordConfirm" label="Password" 

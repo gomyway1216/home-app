@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TextField, Button, Alert, AlertTitle } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Provider/AuthProvider';
+import * as userApi from '../../Firebase/user';
 import styles from './sign-in-page.module.scss';
 
 
@@ -16,7 +17,7 @@ const SignInPage = () => {
   const [errorText, setErrorText] = useState(defaultInput);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, setUserId } = useAuth();
   
   const onSignIn = async () => {
     const { email, password } = itemInput;
@@ -49,6 +50,8 @@ const SignInPage = () => {
       setError('');
       setLoading(true);
       await signIn(email, password);
+      const user = await userApi.getUserByEmail(email);
+      setUserId(user.userId);
       navigate('/');
     } catch (e) {
       setError(e.message);

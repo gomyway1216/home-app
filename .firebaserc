@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "homeorganizer"
+  },
+  "targets": {
+    "homeorganizer": {
+      "hosting": {
+        "main": [
+          "homeorganizer"
+        ]
+      }
+    }
+  }
+}
