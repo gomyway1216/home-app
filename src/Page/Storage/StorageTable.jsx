@@ -121,7 +121,7 @@ const StorageTable = (props) => {
         }}
       />
       <ItemDialog open={dialogOpen} onClose={handleDialogClose} callback={getItemList} 
-        locationList={locationList} ownerList={ownerList} typeList={typeList} item={dialogItem}/>
+        locationList={locationList} ownerList={ownerList} typeList={typeList} item={dialogItem} groupId={props.groupId}/>
     </div>
   );
 };

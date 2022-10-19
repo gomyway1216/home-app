@@ -93,7 +93,7 @@ const ItemDialog = (props) => {
         } else {
           props.onClose();
           setDialogItem(defaultItem);
-          props.callback();
+          props.callback(props.groupId);
         }
       } else {
         const itemId = await storageApi.createItem(props.groupId, item);
@@ -101,7 +101,7 @@ const ItemDialog = (props) => {
           props.onClose();
           await userApi.incrementPoint(userId);
           setDialogItem(defaultItem);
-          props.callback();
+          props.callback(props.groupId);
         } else {
           console.log('saving the new item failed.');
         }

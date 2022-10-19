@@ -44,7 +44,9 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(user);
       if(user) {
         const u = await userApi.getUserByEmail(user.email);
-        setUserId(u.userId);
+        if(u) {
+          setUserId(u.userId);
+        }
       } else {
         setUserId(null);
       }

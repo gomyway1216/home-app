@@ -21,10 +21,12 @@ const RouteList = () => {
         <Route exact path='/storage' element={<PrivateRoute/>}>
           <Route exact path='/storage' element={<StoragePage/>}/>
         </Route>
-        <Route exact path='/user' element={<UserPage/>}>
+        <Route exact path='/group' element={<PrivateRoute/>}>
+          <Route exact path='/group' element={<GroupPage/>}/>
+        </Route>
+        <Route exact path='/user' element={<PrivateRoute/>}>
           <Route exact path='/user' element={<UserPage/>}/>
         </Route>
-        <Route exact path='/group' element={<GroupPage />} />
       </Routes>
     </div>
   );
