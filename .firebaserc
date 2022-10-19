@@ -3,9 +3,9 @@
     "default": "homeorganizer"
   },
   "targets": {
-    "homeorganizer": {
+    "homeapp-36b7c": {
       "hosting": {
-        "main": [
+        "main-host": [
           "homeorganizer"
         ]
       }
