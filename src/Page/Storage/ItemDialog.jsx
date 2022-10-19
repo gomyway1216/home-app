@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import * as api from '../../Firebase/storage';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, 
-  FormControlLabel, Grid, InputLabel, MenuItem, Select, Switch, TextField } from '@mui/material';
+import * as storageApi from '../../Firebase/storage';
+import * as userApi from '../../Firebase/user';
+import { Button, Box, CircularProgress, Dialog, DialogActions, DialogContent, 
+  DialogTitle, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, 
+  Select, Switch, TextField } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { useAuth } from '../../Provider/AuthProvider';
 import moment from 'moment';
-import styles from './item-modal.module.scss';
+import styles from './item-dialog.module.scss';
 
 const defaultItem = {
   location: '',
@@ -21,22 +23,24 @@ const defaultItem = {
 };
 
 
-const ItemModal = (props) => {
+const ItemDialog = (props) => {
   const [open, setOpen] = useState(props.open);
   const [dialogItem, setDialogItem] = useState(defaultItem);
   const [loading, setLoading] = useState(false);
-  const { currentUser } = useAuth();
-  const userId = currentUser.uid;
+  const { userId } = useAuth();
+  const [doesExpire, setDoesExpire] = useState(true);
     
   useEffect(() => {
     setOpen(props.open);
     // trick to initialize dialogItem, without the below line, dialogItem is empty
+    setLoading(true);
     if(props.item) {
       const modifiedItem = props.item;
       modifiedItem.purchaseDate = moment(props.item.purchaseDate);
       modifiedItem.expiryDate = moment(props.item.expiryDate);
       setDialogItem(modifiedItem);
     }
+    setLoading(false);
   }, [props.open]);
 
   const onItemInputChange = (e) => {
@@ -53,7 +57,6 @@ const ItemModal = (props) => {
     });
   };
 
-  //TODO: validate this method
   const onSelectInputChange = (e) => {
     setDialogItem({
       ...dialogItem,
@@ -68,14 +71,23 @@ const ItemModal = (props) => {
     });
   };
 
+  const onExpiryToggleChange = (e) => {
+    setDoesExpire(e.target.checked);
+  };
+
   const onSave = async (item) => {
     try {
       setLoading(true);
       // convert moment date to js date
       item.purchaseDate = item.purchaseDate.toDate();
-      item.expiryDate = item.expiryDate.toDate();
+      if (doesExpire) {
+        item.expiryDate = item.expiryDate.toDate();
+      } else {
+        item.expiryDate = null;
+      }
+      
       if(props.item) {
-        const err = await api.updateItem(userId, item);
+        const err = await storageApi.updateItem(props.groupId, item);
         if (err) {
           console.log('Updating the item failed.');
         } else {
@@ -84,20 +96,20 @@ const ItemModal = (props) => {
           props.callback();
         }
       } else {
-        const itemId = await api.createItem(userId, item);
+        const itemId = await storageApi.createItem(props.groupId, item);
         if (itemId) {
           props.onClose();
+          await userApi.incrementPoint(userId);
           setDialogItem(defaultItem);
           props.callback();
         } else {
           console.log('saving the new item failed.');
         }
       }
-      setLoading(false);
     } catch (err) {
       console.log(err);
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const renderInputFields = (item) => {
@@ -159,7 +171,7 @@ const ItemModal = (props) => {
           )}
         </Select>
       </FormControl>;
-    } else if (item.includes('Date')) {
+    } else if (item.includes('purchaseDate')) {
       return <LocalizationProvider dateAdapter={AdapterMoment}>
         <MobileDatePicker
           label={item === 'purchaseDate' ? 'Purchase Date' : 'Expiry Date'}
@@ -169,6 +181,29 @@ const ItemModal = (props) => {
           renderInput={(params) => <TextField {...params} />}
         />
       </LocalizationProvider>;     
+    } else if (item.includes('expiryDate')) {
+      return <div>
+        <FormControlLabel
+          control={<Switch
+            name='doesExpire'
+            checked={doesExpire}
+            onChange={onExpiryToggleChange}
+          />}
+          label='Does it expire?'
+          labelPlacement="start"
+        />
+        <LocalizationProvider dateAdapter={AdapterMoment}>
+          <MobileDatePicker
+            label={item === 'purchaseDate' ? 'Purchase Date' : 'Expiry Date'}
+            inputFormat="MM/DD/YYYY"
+            value={dialogItem[item]}
+            onChange={onDateInputChange(item)}
+            renderInput={(params) => <TextField {...params} />}
+            disabled={!doesExpire}
+          />
+        </LocalizationProvider>
+      </div>;
+           
     } else if (item === 'id') {
       return <></>;
     } else {
@@ -188,6 +223,11 @@ const ItemModal = (props) => {
       <Dialog open={open} onClose={() => props.onClose()} fullWidth>
         <DialogTitle>Purchased Item</DialogTitle>
         <DialogContent>
+          {loading && 
+          <Box sx={{ display: 'flex' }}>
+            <CircularProgress />
+          </Box> 
+          }
           <Grid container item={true} spacing={3}>      
             {Object.keys(props.item ? props.item : defaultItem).map((item, i) => (
               <Grid key={item} item={true} xs={12} sm={12} md={12}>
@@ -205,10 +245,11 @@ const ItemModal = (props) => {
   );
 };
 
-ItemModal.propTypes = {
+ItemDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   callback: PropTypes.func.isRequired,
+  groupId: PropTypes.string,
   locationList: PropTypes.array.isRequired,
   ownerList: PropTypes.array.isRequired,
   typeList: PropTypes.array.isRequired,
@@ -223,4 +264,4 @@ ItemModal.propTypes = {
   })
 };
 
-export default ItemModal;
+export default ItemDialog;

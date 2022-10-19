@@ -1,14 +1,60 @@
 import * as fbConnect from './firebaseConnect';
-import { addDoc, collection, getDocs, doc, updateDoc } from 'firebase/firestore'; 
+import { addDoc, collection, getDoc, getDocs, doc, query, updateDoc, where } from 'firebase/firestore'; 
 import * as util from '../util/util';
 
 export const getDbAccess = () => {
   return fbConnect.exportDbAccess();
 };
 
-export const getLocationList = async (userId) => {
+// the group should contain
+// name, admin, users that contains the list of userId
+export const getGroup = async (groupId) => {
+  const querySnapshot = await getDoc(doc(getDbAccess(), 'group', groupId));
+  if(querySnapshot.exists()) {
+    return querySnapshot.data();
+  } else {
+    console.log('No group with id: ' + groupId + ' exists');
+    return null;
+  }
+};
+
+export const getGroupList = async (userId) => {
   const response = [];
-  const querySnapshot = await getDocs(collection(getDbAccess(), 'user', userId, 'storageLocation'));
+  const q = query(collection(getDbAccess(), 'group'), where('users', 'array-contains', userId));
+  const querySnapshot = await getDocs(q);
+  for(let i = 0; i < querySnapshot.docs.length; i++) {
+    const groupDoc = querySnapshot.docs[i];
+    const item = {
+      id: groupDoc.id,
+      name: groupDoc.data().name,
+      admin: groupDoc.data().admin,
+      users: groupDoc.data().users
+    };
+    response.push(item);
+  }
+  return response;
+};
+
+export const createGroup = async (group) => {
+  const docRef = await addDoc(collection(getDbAccess(), 'group'), group);
+  return docRef.id;
+};
+
+export const updateGroup = async (groupId, group) => {
+  try {
+    await updateDoc(doc(getDbAccess(), 'group', groupId), {
+      name: group.name,
+      users: group.users
+    });
+  } catch (err) {
+    console.log('error when updating group: ', err);
+    return err;
+  }
+};
+
+export const getLocationList = async (groupId) => {
+  const response = [];
+  const querySnapshot = await getDocs(collection(getDbAccess(), 'group', groupId, 'storageLocation'));
   for(let i = 0; i < querySnapshot.docs.length; i++) {
     const locationDoc = querySnapshot.docs[i];
     response.push(locationDoc.data().name);
@@ -16,29 +62,14 @@ export const getLocationList = async (userId) => {
   return response;
 };
 
-export const createLocation = async (userId, location) => {
-  const docRef = await addDoc(collection(getDbAccess(), 'user', userId, 'storageLocation'), { name: location });
+export const createLocation = async (groupId, location) => {
+  const docRef = await addDoc(collection(getDbAccess(), 'group', groupId, 'storageLocation'), { name: location });
   return docRef.id;
 };
 
-export const getOwnerList = async (userId) => {
+export const getTypeList = async (groupId) => {
   const response = [];
-  const querySnapshot = await getDocs(collection(getDbAccess(), 'user', userId, 'storageOwner'));
-  for(let i = 0; i < querySnapshot.docs.length; i++) {
-    const ownerDoc = querySnapshot.docs[i];
-    response.push(ownerDoc.data().name);
-  }
-  return response;
-};
-
-export const createOwner = async (userId, owner) => {
-  const docRef = await addDoc(collection(getDbAccess(), 'user', userId, 'storageOwner'), { name: owner });
-  return docRef.id;
-};
-
-export const getTypeList = async (userId) => {
-  const response = [];
-  const querySnapshot = await getDocs(collection(getDbAccess(), 'user', userId, 'storageType'));
+  const querySnapshot = await getDocs(collection(getDbAccess(), 'group', groupId, 'storageType'));
   for(let i = 0; i < querySnapshot.docs.length; i++) {
     const typeDoc = querySnapshot.docs[i];
     response.push(typeDoc.data().name);
@@ -46,14 +77,14 @@ export const getTypeList = async (userId) => {
   return response;
 };
 
-export const createType = async (userId, type) => {
-  const docRef = await addDoc(collection(getDbAccess(), 'user', userId, 'storageType'), { name: type });
+export const createType = async (groupId, type) => {
+  const docRef = await addDoc(collection(getDbAccess(), 'group', groupId, 'storageType'), { name: type });
   return docRef.id;
 };
 
-export const getItemList = async (userId) => {
+export const getItemList = async (groupId) => {
   const response = [];
-  const querySnapshot = await getDocs(collection(getDbAccess(), 'user', userId, 'storage'));
+  const querySnapshot = await getDocs(collection(getDbAccess(), 'group', groupId, 'storage'));
   for (let i = 0; i < querySnapshot.docs.length; i++) {
     const itemDoc = querySnapshot.docs[i];
     const item = {
@@ -62,7 +93,7 @@ export const getItemList = async (userId) => {
       owner: itemDoc.data().owner, // who owns it
       type: itemDoc.data().type, // foods/condiments/drinks
       purchaseDate: util.convertFbTimeToDate(itemDoc.data().purchaseDate), // date of purchasing the item
-      expiryDate: util.convertFbTimeToDate(itemDoc.data().expiryDate), // expiry date of the item
+      expiryDate: itemDoc.data().expiryDate ? util.convertFbTimeToDate(itemDoc.data().expiryDate) : null, // expiry date of the item
       name: itemDoc.data().name, // item name
       isAvailable: itemDoc.data().isAvailable // if the item is still available to take
     };
@@ -71,14 +102,14 @@ export const getItemList = async (userId) => {
   return response;
 };
 
-export const createItem = async (userId, item) => {
-  const docRef = await addDoc(collection(getDbAccess(), 'user', userId, 'storage'), item);
+export const createItem = async (groupId, item) => {
+  const docRef = await addDoc(collection(getDbAccess(), 'group', groupId, 'storage'), item);
   return docRef.id;
 };
 
-export const updateItem = async (userId, item) => {
+export const updateItem = async (groupId, item) => {
   try {
-    await updateDoc(doc(getDbAccess(), 'user', userId, 'storage', item.id), {
+    await updateDoc(doc(getDbAccess(), 'group', groupId, 'storage', item.id), {
       location: item.location,
       owner: item.owner,
       type: item.type,
@@ -88,18 +119,18 @@ export const updateItem = async (userId, item) => {
       isAvailable: item.isAvailable
     });
   } catch (err) {
-    console.log('err for update: ', err);
+    console.log('error when updating item: ', err);
     return err;
   }
 };
 
-export const consumeItem = async (userId, itemId) => {
+export const consumeItem = async (groupId, itemId) => {
   try {
-    await updateDoc(doc(getDbAccess(), 'user', userId, 'storage', itemId), {
+    await updateDoc(doc(getDbAccess(), 'group', groupId, 'storage', itemId), {
       isAvailable: false
     });
   } catch (err) {
-    console.log('err for consuming item: ', err);
+    console.log('error when consuming item: ', err);
     return err;
   }
 };

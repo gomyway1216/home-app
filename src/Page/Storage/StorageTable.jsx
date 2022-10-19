@@ -6,7 +6,7 @@ import { DataGrid, GridToolbarContainer,
   GridToolbarDensitySelector, GridToolbarExport } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import ReplayIcon from '@mui/icons-material/Replay';
-import ItemModal from './ItemModal';
+import ItemDialog from './ItemDialog';
 import * as storageApi from '../../Firebase/storage';
 import { useAuth } from '../../Provider/AuthProvider';
 import useMobileQuery from '../../Hook/useMobileQuery';
@@ -18,8 +18,6 @@ const StorageTable = (props) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogItem, setDialogItem] = useState({});
   const { locationList, ownerList, typeList, itemList, getItemList } = props;
-  const { currentUser } = useAuth();
-  const userId = currentUser.uid;
   const { matches } = useMobileQuery();
 
   const columns = [
@@ -87,8 +85,8 @@ const StorageTable = (props) => {
   };
 
   const handleConsumeItem = (row) => {
-    storageApi.consumeItem(userId, row.id);
-    getItemList();
+    storageApi.consumeItem(props.groupId, row.id);
+    getItemList(props.groupId);
   };
 
 
@@ -122,7 +120,7 @@ const StorageTable = (props) => {
           },
         }}
       />
-      <ItemModal open={dialogOpen} onClose={handleDialogClose} callback={getItemList} 
+      <ItemDialog open={dialogOpen} onClose={handleDialogClose} callback={getItemList} 
         locationList={locationList} ownerList={ownerList} typeList={typeList} item={dialogItem}/>
     </div>
   );
@@ -134,7 +132,7 @@ StorageTable.propTypes = {
   typeList: PropTypes.array.isRequired,
   itemList: PropTypes.array.isRequired,
   getItemList: PropTypes.func.isRequired,
-  innerRef: PropTypes.any
+  groupId: PropTypes.string
 };
 
 export default StorageTable;

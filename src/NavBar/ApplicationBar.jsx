@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, List, ListItem, ListItemText, Drawer, IconButton, Menu, MenuItem, Typography, Alert, AlertTitle } from '@mui/material';
+import { AppBar, Toolbar, List, ListItem, ListItemText, Drawer, 
+  IconButton, Menu, MenuItem, Typography, Alert, AlertTitle } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -11,7 +12,7 @@ const ApplicationBar = () => {
   const navigate = useNavigate();
   const loc = useLocation();
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const { currentUser, signOut } = useAuth();
+  const { currentUser, userId, signOut } = useAuth();
   const [error, setError] = useState('');
 
   const toggleDrawer = (open) => (event) => {
@@ -52,6 +53,11 @@ const ApplicationBar = () => {
     } catch (e) {
       console.log('error while signing out!', e);
     }
+  };
+
+  const handleClickMyPage = async () => {
+    navigate('/user');
+    handleClose();
   };
 
   const SideList = () => (
@@ -111,7 +117,8 @@ const ApplicationBar = () => {
               onClose={handleClose}
             >
               {!currentUser && <MenuItem onClick={handleSignIn}>Sign In</MenuItem>}
-              {currentUser && <MenuItem >{currentUser.userName ? currentUser.userName : currentUser.email.split('@')[0]}</MenuItem>}
+              {currentUser && <MenuItem >{userId}</MenuItem>}
+              {currentUser && <MenuItem onClick={handleClickMyPage}>My Page</MenuItem>}
               {currentUser && <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>}
             </Menu>
             {error && 
