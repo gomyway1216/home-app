@@ -37,7 +37,13 @@ const ItemDialog = (props) => {
     if(props.item) {
       const modifiedItem = props.item;
       modifiedItem.purchaseDate = moment(props.item.purchaseDate);
-      modifiedItem.expiryDate = moment(props.item.expiryDate);
+      if(props.item.expiryDate) {
+        setDoesExpire(true);
+        modifiedItem.expiryDate = moment(props.item.expiryDate);
+      } else {
+        console.log('inside else');
+        setDoesExpire(false);
+      }
       setDialogItem(modifiedItem);
     }
     setLoading(false);
@@ -193,14 +199,15 @@ const ItemDialog = (props) => {
           labelPlacement="start"
         />
         <LocalizationProvider dateAdapter={AdapterMoment}>
-          <MobileDatePicker
-            label={item === 'purchaseDate' ? 'Purchase Date' : 'Expiry Date'}
-            inputFormat="MM/DD/YYYY"
-            value={dialogItem[item]}
-            onChange={onDateInputChange(item)}
-            renderInput={(params) => <TextField {...params} />}
-            disabled={!doesExpire}
-          />
+          {doesExpire && 
+            <MobileDatePicker
+              label={item === 'purchaseDate' ? 'Purchase Date' : 'Expiry Date'}
+              inputFormat="MM/DD/YYYY"
+              value={dialogItem[item]}
+              onChange={onDateInputChange(item)}
+              renderInput={(params) => <TextField {...params} />}
+            />
+          }
         </LocalizationProvider>
       </div>;
            
