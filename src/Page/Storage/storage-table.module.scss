@@ -6,4 +6,12 @@
     display: flex;
     justify-content: flex-end;
   }
+
+  .expired {
+    background-color: orangered;
+  }
+
+  .expiring {
+    background-color: aqua;
+  }
 }
