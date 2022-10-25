@@ -41,7 +41,6 @@ const ItemDialog = (props) => {
         setDoesExpire(true);
         modifiedItem.expiryDate = moment(props.item.expiryDate);
       } else {
-        console.log('inside else');
         setDoesExpire(false);
       }
       setDialogItem(modifiedItem);

@@ -8,9 +8,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import ReplayIcon from '@mui/icons-material/Replay';
 import ItemDialog from './ItemDialog';
 import * as storageApi from '../../Firebase/storage';
-import { useAuth } from '../../Provider/AuthProvider';
 import useMobileQuery from '../../Hook/useMobileQuery';
 import IconButtonWithTooltip from '../../Component/IconButtonWithTooltip';
+import * as util from '../../util/util';
 import styles from './storage-table.module.scss';
 
 
@@ -45,13 +45,21 @@ const StorageTable = (props) => {
       headerName: 'Purchase Date', 
       width: 150,
       type: 'date',
-      valueGetter: ({ value }) => value && new Date(value).toLocaleDateString()
+      valueGetter: ({ value }) => value && new Date(value)
     },
     { field: 'expiryDate', 
       headerName: 'Expiry Date', 
       width: 150,
       type: 'date',
-      valueGetter: ({ value }) => value && new Date(value).toLocaleDateString()
+      valueGetter: ({ value }) => {
+        return value && new Date(value);
+      },
+      sortComparator: (a, b) => {
+        const distantFuture = new Date(8640000000000000);
+        let dateA = a ? a : distantFuture;
+        let dateB = b ? b : distantFuture;
+        return dateA.getTime() - dateB.getTime();
+      }
     },
     { field: 'isAvailable', headerName: 'Available', width: 100, type: 'boolean' },
     {
@@ -89,7 +97,6 @@ const StorageTable = (props) => {
     getItemList(props.groupId);
   };
 
-
   return (
     <div className={styles.storageTableRoot}>
       {matches.width && <div className={styles.commands}>
@@ -108,6 +115,16 @@ const StorageTable = (props) => {
               <GridToolbarExport />
             </GridToolbarContainer>);
         }}}
+        initialState={{
+          sorting: {
+            sortModel: [{ field: 'expiryDate', sort: 'asc' }]
+          },
+          filter: {
+            filterModel: {
+              items: [{ columnField: 'isAvailable', operatorValue: 'is', value: 'true' }]
+            },
+          },
+        }}
         autoHeight
         componentsProps={{
           panel: {
@@ -117,7 +134,17 @@ const StorageTable = (props) => {
                 flexDirection: 'column'
               },
             },
-          },
+          }
+        }}
+
+        getRowClassName={(params) => {
+          if (params.row.expiryDate instanceof Date) {
+            if(util.isDatePast(params.row.expiryDate)) {
+              return `${styles.expired}`;
+            } else if (util.isDateWithInAWeek(params.row.expiryDate)) {
+              return `${styles.expiring}`;
+            }  
+          }
         }}
       />
       <ItemDialog open={dialogOpen} onClose={handleDialogClose} callback={getItemList} 
